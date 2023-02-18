@@ -69,13 +69,9 @@ public:
         vector<string> words = SplitIntoWordsNoStop(document);
         for (const string& word : words)
         {
-            double i = 0.0;
-            for (const string& w : words)
-                if (w == word)
-                    i += 1.0;
-
-            documents_[word].insert({ document_id, ((i) / (words.size())) });
-
+            documents_[word].insert({ document_id,
+                                     (count(words.begin(),words.end(),word)
+                                      / (words.size() + 0.0)) });
         }
     }
 
@@ -111,8 +107,7 @@ private:
         }
         return words;
     }
-
-    Query ParseQuery(const string& text) const
+    Query ParseQueryWord(const string& text) const
     {
         Query words;
         for (string& word : SplitIntoWords(text))
@@ -128,6 +123,11 @@ private:
                 words.plus_words.insert(word);
             }
         }
+        return words;
+    }
+    Query ParseQuery(const string& text) const
+    {
+        Query words = ParseQueryWord(text);
         Query words_no_stop;
         words_no_stop.minus_words = words.minus_words;
         for (const string& word : words.plus_words) {
@@ -137,8 +137,7 @@ private:
         }
         return words;
     }
-
-    map<int, double> MatchDocument(const Query& query_words) const
+    map<int, double> CalculationIDF(const Query& query_words) const
     {
         map<int, double> document_to_relevance;
         for (const string& word : query_words.plus_words)
@@ -152,6 +151,12 @@ private:
                 }
             }
         }
+        return document_to_relevance;
+    }
+    map<int, double> MatchDocument(const Query& query_words) const
+    {
+        map<int, double> document_to_relevance = CalculationIDF(query_words);
+
         for (const string& word : query_words.minus_words)
         {
             if (documents_.count(word) == 1)
