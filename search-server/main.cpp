@@ -1,4 +1,3 @@
-
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -8,6 +7,7 @@
 #include <utility>
 #include <vector>
 #include <tuple>
+#include <cassert>
 
 
 using namespace std;
@@ -26,6 +26,60 @@ enum DocumentStatus {
     BANNED,
     REMOVED
 };
+template <typename type>
+ostream& operator<<(ostream& out, const vector<type>& container) {
+    out << "[";
+    bool first = true;
+    for (const type& element : container) {
+        if (!first) {
+
+            out << ", " << element;
+        }
+        else {
+            out << element;
+            first = false;
+        }
+
+    }
+    out << "]";
+    return out;
+}
+template <typename type>
+ostream& operator<<(ostream& out, const set<type>& container) {
+    out << "{";
+    bool first = true;
+    for (const type& element : container) {
+        if (!first) {
+
+            out << ", " << element;
+        }
+        else {
+            out << element;
+            first = false;
+        }
+
+    }
+    out << "}";
+    return out;
+}
+template <typename key, typename value>
+ostream& operator<<(ostream& out, const map<key, value>& container) {
+    out << "{";
+    bool first = true;
+    for (const auto& [key_, value_] : container) {
+        if (!first) {
+
+            out << ", " << key_ << ": " << value_;
+        }
+        else {
+            out << key_ << ": " << value_;
+            first = false;
+        }
+
+    }
+    out << "}";
+    return out;
+}
 
 int ReadLineWithNumber() {
     int result;
@@ -105,8 +159,8 @@ public:
         return FindTopDocuments(raw_query, [status_document](int document_id, DocumentStatus status, int rating) { return  status == status_document; });
     }
 
-    template <typename FunctionPredicat>
-    vector<Document> FindTopDocuments(const string& raw_query, FunctionPredicat predicat) const {
+    template <typename DocumentPredicate>
+    vector<Document> FindTopDocuments(const string& raw_query, DocumentPredicate predicat) const {
         const Query query = ParseQuery(raw_query);
         auto matched_documents = FindDesiredStatusDocuments(query, predicat);
 
@@ -129,9 +183,8 @@ private:
         int rating;
         DocumentStatus status;
     };
+
     map<int, DocumentInfo> document_info_;
-
-
 
     bool IsStopWord(const string& word) const {
         return stop_words_.count(word) > 0;
@@ -233,8 +286,8 @@ private:
         return matched_documents;
     }
 
-    template <typename FunctionPredicat>
-    vector<Document> FindDesiredStatusDocuments(const Query& query, FunctionPredicat predicat) const {
+    template <typename DocumentPredicate>
+    vector<Document> FindDesiredStatusDocuments(const Query& query, DocumentPredicate predicat) const {
         vector<Document> required_documents = FindAllDocuments(query);
         vector<Document> desired_status_documents;
         int i = 0;
@@ -248,6 +301,174 @@ private:
     }
 };
 
+template <typename T, typename U>
+void AssertEqualImpl(const T& t, const U& u, const string& t_str, const string& u_str, const string& file,
+    const string& func, unsigned line, const string& hint) {
+    if (t != u) {
+        cout << boolalpha;
+        cout << file << "("s << line << "): "s << func << ": "s;
+        cout << "ASSERT_EQUAL("s << t_str << ", "s << u_str << ") failed: "s;
+        cout << t << " != "s << u << "."s;
+        if (!hint.empty()) {
+            cout << " Hint: "s << hint;
+        }
+        cout << endl;
+        abort();
+    }
+}
+
+#define ASSERT_EQUAL(a, b) AssertEqualImpl((a), (b), #a, #b, __FILE__, __FUNCTION__, __LINE__, ""s)
+
+#define ASSERT_EQUAL_HINT(a, b, hint) AssertEqualImpl((a), (b), #a, #b, __FILE__, __FUNCTION__, __LINE__, (hint))
+
+void AssertImpl(bool value, const string& expr_str, const string& file, const string& func, unsigned line,
+    const string& hint) {
+    if (!value) {
+        cout << file << "("s << line << "): "s << func << ": "s;
+        cout << "ASSERT("s << expr_str << ") failed."s;
+        if (!hint.empty()) {
+            cout << " Hint: "s << hint;
+        }
+        cout << endl;
+        abort();
+    }
+}
+
+#define ASSERT(expr) AssertImpl(!!(expr), #expr, __FILE__, __FUNCTION__, __LINE__, ""s)
+
+#define ASSERT_HINT(expr, hint) AssertImpl(!!(expr), #expr, __FILE__, __FUNCTION__, __LINE__, (hint))
+
+
+
+void TestAddDocument() {
+    SearchServer examination;
+    int document_id = 0;
+    string document = "good white dog"s;
+    DocumentStatus status = DocumentStatus::ACTUAL;
+    vector<int> rating = { 5,-2 };
+    examination.AddDocument(document_id, document, status, rating);
+    ASSERT(examination.FindTopDocuments("fgh").empty());
+    ASSERT_EQUAL_HINT(examination.FindTopDocuments("good").size(), 1, "Document not added or cannot be found"s);
+}
+void TestMinusWords() {
+    SearchServer examination;
+    DocumentStatus status = DocumentStatus::ACTUAL;
+    vector<int> rating = { 5,-2 };
+    examination.AddDocument(0, "good white dog", status, rating);
+    examination.AddDocument(1, "good white black dog", status, rating);
+    examination.AddDocument(2, "fghjk", status, rating);
+    ASSERT_EQUAL(examination.FindTopDocuments("good").size(), 2);
+    ASSERT_EQUAL(examination.FindTopDocuments("good -black").size(), 1);
+
+}
+void TestStopWords() {
+    SearchServer examination;
+    DocumentStatus status = DocumentStatus::ACTUAL;
+    vector<int> rating = { 5,-2 };
+    examination.SetStopWords("in is a");
+    examination.AddDocument(0, "good in white dog", status, rating);
+    examination.AddDocument(1, "good is white a black dog", status, rating);
+    const auto& [checked_document1, id1] = examination.MatchDocument("good in white dog", 0);
+    const auto& [checked_document2, id2] = examination.MatchDocument("good in white a dog", 1);
+    vector<string> words_doc = { "dog","good","white" };
+
+    ASSERT_EQUAL(checked_document1, words_doc);
+    ASSERT_EQUAL(checked_document2, words_doc);
+}
+void TestMatchDocument() {
+    SearchServer examination;
+    DocumentStatus status = DocumentStatus::ACTUAL;
+    vector<int> rating = { 5,-2 };
+    examination.AddDocument(0, "good black white dog", status, rating);
+    const auto& [checked_document1, id1] = examination.MatchDocument("good  white dog", 0);
+    const auto& [checked_document2, id2] = examination.MatchDocument("good -white a dog", 0);
+    vector<string> words_doc1 = { "dog","good","white" };
+    vector<string> words_doc2 = { };
+    ASSERT_EQUAL(checked_document1, words_doc1);
+    ASSERT_EQUAL(checked_document2, words_doc2);
+}
+void TestRelevanceSorting() {
+    SearchServer examination;
+    DocumentStatus status = DocumentStatus::ACTUAL;
+    vector<int> rating = { 5,-2 };
+    examination.AddDocument(0, "1 2 3 1", status, rating);
+    examination.AddDocument(1, "3 3", status, rating);
+    examination.AddDocument(2, "1 3", status, rating);
+    examination.AddDocument(3, "4 5", status, rating);
+    vector<int> relevanse_id = { 2,0,1 };
+    vector<double> relevanse = { 0.49,0.418,0.287 };
+    int i = 0;
+    for (const Document& document : examination.FindTopDocuments("1 3"s)) {
+        ASSERT_EQUAL_HINT(document.id, relevanse_id[i], "Relevance sorting is wrong. Document out of place"s);
+        const double EPSILON = 0.001;
+        ASSERT_HINT((document.relevance - relevanse[i]) < EPSILON, "Relevance is calculated incorrectly"s);
+        ++i;
+    }
+}
+void TestRankingCalculations() {
+    SearchServer examination;
+    DocumentStatus status = DocumentStatus::ACTUAL;
+    vector<int> rating1 = { 5,-2, 3 };
+    vector<int> rating2 = { 5 };
+    vector<int> rating3 = { 0 };
+    vector<int> rating4 = { 5 };
+    examination.AddDocument(0, "2", status, rating1);
+    examination.AddDocument(1, "2 1", status, rating2);
+    examination.AddDocument(2, "2 1 1", status, rating3);
+    examination.AddDocument(3, "1", status, rating4);
+    vector<double> rating = { 2,5,0 };
+    int i = 0;
+    for (const Document& document : examination.FindTopDocuments("2"s)) {
+        ASSERT_EQUAL(document.rating, rating[i]);
+        ++i;
+    }
+}
+void TestPredicatSorting() {
+    SearchServer examination;
+    DocumentStatus status = DocumentStatus::ACTUAL;
+    vector<int> rating1 = { 5,-2 };
+    vector<int> rating2 = { 6 };
+    examination.AddDocument(0, "1 2 3 1", status, rating1);//relevanse=0.18 /idf1=0.3 idf3=0.12/tf1=0.5,tf3=0.25
+    examination.AddDocument(1, "3 3", status, rating1);//relevanse=0,12 /tf1=0,tf3=1
+    examination.AddDocument(2, "1 3", status, rating2);//relevanse=0,21
+    examination.AddDocument(3, "4 5", status, rating1);//relevanse=0;
+    ASSERT(examination.FindTopDocuments("1 3"s).size() == 3);
+    ASSERT(examination.FindTopDocuments("1 3"s, [](int document_id, DocumentStatus status, int rating) { return document_id % 2 == 0; }).size() == 2);
+    ASSERT(examination.FindTopDocuments("1 3"s, [](int document_id, DocumentStatus status, int rating) { return rating > 5; }).size() == 1);
+}
+void TestStatusSorting() {
+    SearchServer examination;
+    vector<int> rating = { 5,-2 };
+    string doc = "1 2";
+    examination.AddDocument(0, doc, DocumentStatus::ACTUAL, rating);//relevanse=0.18 /idf1=0.3 idf3=0.12/tf1=0.5,tf3=0.25
+    examination.AddDocument(1, doc, DocumentStatus::ACTUAL, rating);//relevanse=0,12 /tf1=0,tf3=1
+    examination.AddDocument(2, doc, DocumentStatus::BANNED, rating);//relevanse=0,21
+    examination.AddDocument(3, doc, DocumentStatus::IRRELEVANT, rating);//relevanse=0;
+    ASSERT(examination.FindTopDocuments("1", DocumentStatus::ACTUAL).size() == 2);
+    ASSERT(examination.FindTopDocuments("1", DocumentStatus::BANNED).size() == 1);
+    ASSERT(examination.FindTopDocuments("1", DocumentStatus::REMOVED).size() == 0);
+}
+
+template <typename T>
+void RunTestImpl(T func, const string& name) {
+    func();
+    cerr << name << " Test completed"s << endl;
+
+}
+
+#define RUN_TEST(func)  RunTestImpl(func,#func)
+
+void TestSearchServer() {
+    RUN_TEST(TestAddDocument);
+    RUN_TEST(TestMinusWords);
+    RUN_TEST(TestStopWords);
+    RUN_TEST(TestMatchDocument);
+    RUN_TEST(TestRelevanceSorting);
+    RUN_TEST(TestRankingCalculations);
+    RUN_TEST(TestPredicatSorting);
+    RUN_TEST(TestStatusSorting);
+}
+
 void PrintDocument(const Document& document) {
     cout << "{ "s
         << "document_id = "s << document.id << ", "s
@@ -256,6 +477,8 @@ void PrintDocument(const Document& document) {
 }
 
 int main() {
+
+    TestSearchServer();
     SearchServer search_server;
     search_server.SetStopWords("и в на"s);
     search_server.AddDocument(0, "белый кот и модный ошейник"s, DocumentStatus::ACTUAL, { 8, -3 });
@@ -263,6 +486,7 @@ int main() {
     search_server.AddDocument(2, "ухоженный пёс выразительные глаза"s, DocumentStatus::ACTUAL, { 5, -12, 2, 1 });
     search_server.AddDocument(3, "ухоженный скворец евгений"s, DocumentStatus::BANNED, { 9 });
     cout << "ACTUAL by default:"s << endl;
+
     for (const Document& document : search_server.FindTopDocuments("пушистый ухоженный кот"s)) {
         PrintDocument(document);
     }
