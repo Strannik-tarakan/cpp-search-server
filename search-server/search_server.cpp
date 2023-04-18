@@ -42,11 +42,6 @@ using std::string_literals::operator""s;
 
     std::tuple<std::vector<std::string>, DocumentStatus> SearchServer::MatchDocument(const std::string& raw_query, int document_id) const {
 
-        if (!document_info_.count(document_id)) {
-            throw std::invalid_argument("There is no document with this id"s);
-        }
-
-
         Query query = ParseQuery(raw_query);
 
         std::vector<std::string> plus_words_document;
@@ -119,10 +114,10 @@ using std::string_literals::operator""s;
         if (static_cast<int>(text.size()) == 1 && text[0] == '-') {
             throw std::invalid_argument("expected word after '-'"s);
         }
-        else if (text[1] == '-' && text[0] == '-') {
+        if (text[1] == '-' && text[0] == '-') {
             throw std::invalid_argument("Two '-' characters in a row"s);
         }
-        else if (text[static_cast<int>(text.size() - 1)] == '-') {
+        if (text.back() == '-') {
             throw std::invalid_argument("Invalid character '-' at the end of a word"s);
         }
         if (text[0] == '-') {

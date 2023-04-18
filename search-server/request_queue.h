@@ -19,9 +19,9 @@ private:
     void TickOfTime();
 
     struct QueryResult {
-        std::vector<Document> result;
+        bool result_is_empty;
         int min_of_life = 0;
-        
+       
     };
     std::deque<QueryResult> requests_;
     const static int min_in_day_ = 1440;
@@ -33,13 +33,15 @@ private:
 template <typename DocumentPredicate>
 std::vector<Document> RequestQueue::AddFindRequest(const std::string& raw_query, DocumentPredicate document_predicate) {
     QueryResult query_result;
-    query_result.result = search_server_.FindTopDocuments(raw_query, document_predicate);
+    vector<Document> result;
+    result = search_server_.FindTopDocuments(raw_query, document_predicate);
+    query_result.result_is_empty = result.empty();
     TickOfTime();
     requests_.push_back(query_result);
-    if (query_result.result.empty()) {
+    if (query_result.result_is_empty) {
         ++no_result_requests;
     }
-    return query_result.result;
+    return result;
 }
 
 

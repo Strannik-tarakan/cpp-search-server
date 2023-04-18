@@ -73,8 +73,9 @@ private:
     static void CheckValidWord(const Ñollection& words);
 };
 
-template <typename Ñollection>
-SearchServer::SearchServer(const Ñollection& stop_words)
+
+template <typename Collection>
+SearchServer::SearchServer(const Collection& stop_words)
 {
     CheckValidWord(stop_words);
     for (const std::string& word : stop_words) {

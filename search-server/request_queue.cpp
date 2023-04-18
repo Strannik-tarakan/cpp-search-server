@@ -18,25 +18,29 @@
     
     std::vector<Document> RequestQueue::AddFindRequest(const std::string& raw_query, DocumentStatus status) {
         QueryResult query_result;
-        query_result.result = search_server_.FindTopDocuments(raw_query, status);
+        vector<Document> result;
+        result = search_server_.FindTopDocuments(raw_query, status);
+        query_result.result_is_empty = result.empty();
         TickOfTime();
         requests_.push_back(query_result);
-        if (query_result.result.empty()) {
+        if (query_result.result_is_empty) {
             ++no_result_requests;
         }
-        return query_result.result;
+        return result;
        
     }
 
     std::vector<Document> RequestQueue::AddFindRequest(const std::string& raw_query) {
         QueryResult query_result;
-        query_result.result = search_server_.FindTopDocuments(raw_query);
+        vector<Document> result;
+        result = search_server_.FindTopDocuments(raw_query);
+        query_result.result_is_empty = result.empty();
         TickOfTime();
         requests_.push_back(query_result);
-        if (query_result.result.empty()) {
+        if (query_result.result_is_empty) {
             ++no_result_requests;
         }
-        return query_result.result;
+        return result;
        
     }
     int RequestQueue::GetNoResultRequests() const {
@@ -49,7 +53,7 @@
         for (QueryResult& query : requests_) {
             ++query.min_of_life;
             if (query.min_of_life >= min_in_day_) {
-                if (query.result.empty()) {
+                if (query.result_is_empty) {
                     --no_result_requests;
                 }
                 ++pop_query;
