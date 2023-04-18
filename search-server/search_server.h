@@ -11,8 +11,8 @@ class SearchServer {
 public:
     SearchServer();
     explicit SearchServer(const std::string& stop_words);
-    template <typename Сollection>
-    explicit SearchServer(const Сollection& stop_words);
+    template <typename Collection> //Извеняюсь что так много раз не знаю от куда эта русская С везде зачасалась) Доброй ночи или утра или лня)
+    explicit SearchServer(const Collection& stop_words);
 
     void AddDocument(int document_id, const std::string& document, DocumentStatus status, const std::vector<int>& ratings);
 
@@ -69,8 +69,8 @@ private:
 
     static void CheckValidWord(const std::string& words);
 
-    template <typename Сollection>
-    static void CheckValidWord(const Сollection& words);
+    template <typename Collection>
+    static void CheckValidWord(const Collection& words);
 };
 
 
@@ -117,8 +117,8 @@ std::vector<Document> SearchServer::FindDesiredStatusDocuments(const Query& quer
     return desired_status_documents;
 }
 
-template <typename Сollection>
-void SearchServer::CheckValidWord(const Сollection& words) {
+template <typename Collection>
+void SearchServer::CheckValidWord(const Collection& words) {
     for (const std::string& word : words) {
         if (any_of(word.begin(), word.end(), [](char c) {
             return c >= '\0' && c < ' '; })) {
