@@ -1,22 +1,27 @@
-#include <iostream>
 #include <string>
-#include <map>
-#include <set>
 #include <vector>
 
 #include "string_processing.h"
 
 
 
-std::string ReadLine() {
-    std::string s;
-    std::getline(std::cin, s);
-    return s;
-}
+std::vector<std::string> SplitIntoWords(const std::string& text) {
+    std::vector<std::string> words;
+    std::string word;
+    for (const char c : text) {
+        if (c == ' ') {
+            if (!word.empty()) {
+                words.push_back(word);
+                word.clear();
+            }
 
-int ReadLineWithNumber() {
-    int result;
-    std::cin >> result;
-    ReadLine();
-    return result;
+        }
+        else {
+            word += c;
+        }
+    }
+    if (!word.empty()) {
+        words.push_back(word);
+    }
+    return words;
 }

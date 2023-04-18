@@ -30,10 +30,7 @@ public:
     int GetDocumentId(int index) const;
 
 private:
-    inline static constexpr int INVALID_DOCUMENT_ID = -1;
-    std::set<std::string> stop_words_;
-    std::map<std::string, std::map<int, double>> word_to_document_freqs_;
-    std::vector<int> document_count_;
+
     struct DocumentInfo {
         int rating;
         DocumentStatus status;
@@ -47,6 +44,10 @@ private:
         std::set<std::string> plus_words;
         std::set<std::string> minus_words;
     };
+
+    std::set<std::string> stop_words_;
+    std::map<std::string, std::map<int, double>> word_to_document_freqs_;
+    std::vector<int> document_count_;
     std::map<int, DocumentInfo> document_info_;
 
     bool IsStopWord(const std::string& word) const;

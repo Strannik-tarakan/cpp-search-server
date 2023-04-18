@@ -4,6 +4,63 @@
 
 using std::string_literals::operator""s;
 
+template <typename type>
+std::ostream& operator<<(std::ostream& out, const std::vector<type>& container) {
+    out << "[";
+    bool first = true;
+    for (const type& element : container) {
+        if (!first) {
+
+            out << ", " << element;
+        }
+        else {
+            out << element;
+            first = false;
+        }
+
+    }
+    out << "]";
+    return out;
+}
+
+template <typename type>
+std::ostream& operator<<(std::ostream& out, const std::set<type>& container) {
+    out << "{";
+    bool first = true;
+    for (const type& element : container) {
+        if (!first) {
+
+            out << ", " << element;
+        }
+        else {
+            out << element;
+            first = false;
+        }
+
+    }
+    out << "}";
+    return out;
+}
+
+template <typename key, typename value>
+std::ostream& operator<<(std::ostream& out, const std::map<key, value>& container) {
+    out << "{";
+    bool first = true;
+    for (const auto& [key_, value_] : container) {
+        if (!first) {
+
+            out << ", " << key_ << ": " << value_;
+        }
+        else {
+            out << key_ << ": " << value_;
+            first = false;
+        }
+
+    }
+    out << "}";
+    return out;
+}
+
 template <typename T, typename U>
 void AssertEqualImpl(const T& t, const U& u, const std::string& t_str, const std::string& u_str, const std::string& file,
     const std::string& func, unsigned line, const std::string& hint) {
