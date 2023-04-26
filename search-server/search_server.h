@@ -2,7 +2,7 @@
 
 #include "document.h"
 
-using namespace std;//Иначе яндекс не принимает(можно убрать)!!!
+//using namespace std;//Иначе яндекс не принимает(можно убрать)!!!
 using std::string_literals::operator""s;
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
@@ -11,12 +11,18 @@ class SearchServer {
 public:
     SearchServer();
     explicit SearchServer(const std::string& stop_words);
-    template <typename Collection> //Извеняюсь что так много раз не знаю от куда эта русская С везде зачасалась) Доброй ночи или утра или лня)
+    template <typename Collection> 
     explicit SearchServer(const Collection& stop_words);
 
     void AddDocument(int document_id, const std::string& document, DocumentStatus status, const std::vector<int>& ratings);
 
+    void RemoveDocument(int document_id);
+
     int GetDocumentCount() const;
+
+    std::set<int>::const_iterator begin() const;
+
+    std::set<int>::const_iterator end() const;
 
     std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string& raw_query, int document_id) const;
 
@@ -27,7 +33,7 @@ public:
     template <typename DocumentPredicate>
     std::vector<Document> FindTopDocuments(const std::string& raw_query, DocumentPredicate document_predicate) const;
 
-    int GetDocumentId(int index) const;
+   const std::map<std::string, double>& GetWordFrequencies(int document_id) const;
 
 private:
 
@@ -47,8 +53,9 @@ private:
 
     std::set<std::string> stop_words_;
     std::map<std::string, std::map<int, double>> word_to_document_freqs_;
-    std::vector<int> document_count_;
+    std::set<int> document_count_;
     std::map<int, DocumentInfo> document_info_;
+    std::map<int, std::map<std::string, double>> word_frequency_;
 
     bool IsStopWord(const std::string& word) const;
 
@@ -71,7 +78,12 @@ private:
 
     template <typename Collection>
     static void CheckValidWord(const Collection& words);
+
+    
+
+    
 };
+
 
 
 template <typename Collection>

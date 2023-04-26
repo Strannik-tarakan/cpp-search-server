@@ -33,7 +33,7 @@ private:
 template <typename DocumentPredicate>
 std::vector<Document> RequestQueue::AddFindRequest(const std::string& raw_query, DocumentPredicate document_predicate) {
     QueryResult query_result;
-    vector<Document> result;
+    std::vector<Document> result;
     result = search_server_.FindTopDocuments(raw_query, document_predicate);
     query_result.result_is_empty = result.empty();
     TickOfTime();

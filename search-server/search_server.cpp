@@ -26,14 +26,28 @@ using std::string_literals::operator""s;
             throw std::invalid_argument("attempt to add a document with an existing id"s);
         }
         CheckValidWord(document);
-        document_count_.push_back(document_id);
+        document_count_.insert(document_id);
         const std::vector<std::string> words = SplitIntoWordsNoStop(document);
         const double inv_word_count = 1.0 / words.size();
         for (const std::string& word : words) {
             word_to_document_freqs_[word][document_id] += inv_word_count;
+            word_frequency_[document_id][word] += inv_word_count;
         }
         document_info_[document_id] = { ComputeAverageRating(ratings),status };
 
+    }
+
+    void SearchServer::RemoveDocument(int document_id) {
+        if (!document_count_.count(document_id)) {
+            return;
+        }
+        document_count_.erase(document_id);
+        document_info_.erase(document_id);
+        word_frequency_.erase(document_id);
+        for (auto [word, id_TF] : word_to_document_freqs_) {
+            word_to_document_freqs_[word].erase(document_id);
+            
+        }
     }
 
     int SearchServer::GetDocumentCount() const {
@@ -76,13 +90,13 @@ using std::string_literals::operator""s;
         return FindTopDocuments(raw_query, [status_document](int document_id, DocumentStatus status, int rating) { return  status == status_document; });
     }
 
-    int SearchServer::GetDocumentId(int index) const {
-        if (index < 0 || index >= static_cast<int>(document_count_.size())) {
 
-            throw std::out_of_range("invalid index. Documents - "s + std::to_string(SearchServer::GetDocumentCount()));
+    std::set<int>::const_iterator SearchServer::begin() const {
+        return document_count_.begin();
+    }
 
-        }
-        return document_count_[index];
+    std::set<int>::const_iterator SearchServer::end() const {
+        return document_count_.end();
     }
 
     bool SearchServer::IsStopWord(const std::string& word) const {
@@ -191,4 +205,9 @@ using std::string_literals::operator""s;
         }
     }
 
+    const std::map<std::string, double>& SearchServer::GetWordFrequencies(int document_id) const {
+        return word_frequency_.at(document_id);
+    }
+
+    
    

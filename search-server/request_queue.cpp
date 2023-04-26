@@ -18,7 +18,7 @@
     
     std::vector<Document> RequestQueue::AddFindRequest(const std::string& raw_query, DocumentStatus status) {
         QueryResult query_result;
-        vector<Document> result;
+        std::vector<Document> result;
         result = search_server_.FindTopDocuments(raw_query, status);
         query_result.result_is_empty = result.empty();
         TickOfTime();
@@ -32,7 +32,7 @@
 
     std::vector<Document> RequestQueue::AddFindRequest(const std::string& raw_query) {
         QueryResult query_result;
-        vector<Document> result;
+        std::vector<Document> result;
         result = search_server_.FindTopDocuments(raw_query);
         query_result.result_is_empty = result.empty();
         TickOfTime();
