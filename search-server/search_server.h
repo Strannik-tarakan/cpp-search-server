@@ -15,25 +15,20 @@ public:
     explicit SearchServer(const Collection& stop_words);
 
     void AddDocument(int document_id, const std::string& document, DocumentStatus status, const std::vector<int>& ratings);
-
     void RemoveDocument(int document_id);
 
-    int GetDocumentCount() const;
-
     std::set<int>::const_iterator begin() const;
-
     std::set<int>::const_iterator end() const;
 
     std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string& raw_query, int document_id) const;
 
     std::vector<Document> FindTopDocuments(const std::string& raw_query, DocumentStatus status_document) const;
-
     std::vector<Document> FindTopDocuments(const std::string& raw_query) const;
-
     template <typename DocumentPredicate>
     std::vector<Document> FindTopDocuments(const std::string& raw_query, DocumentPredicate document_predicate) const;
 
-   const std::map<std::string, double>& GetWordFrequencies(int document_id) const;
+    int GetDocumentCount() const;
+    const std::map<std::string, double>& GetWordFrequencies(int document_id) const;
 
 private:
 
@@ -58,24 +53,19 @@ private:
     std::map<int, std::map<std::string, double>> word_frequency_;
 
     bool IsStopWord(const std::string& word) const;
-
     std::vector<std::string> SplitIntoWordsNoStop(const std::string& text) const;
 
     static int ComputeAverageRating(const std::vector<int>& ratings);
-
-    QueryWord ParseQueryWord(std::string text) const;
-
-    Query ParseQuery(const std::string& text) const;
-
     double ComputeWordInverseDocumentFreq(const std::string& word) const;
 
-    std::vector<Document> FindAllDocuments(const Query& query) const;
+    QueryWord ParseQueryWord(std::string text) const;
+    Query ParseQuery(const std::string& text) const;
 
+    std::vector<Document> FindAllDocuments(const Query& query) const;
     template <typename DocumentPredicate>
     std::vector<Document> FindDesiredStatusDocuments(const Query& query, DocumentPredicate predicat) const;
 
     static void CheckValidWord(const std::string& words);
-
     template <typename Collection>
     static void CheckValidWord(const Collection& words);
 

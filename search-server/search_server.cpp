@@ -44,9 +44,8 @@ using std::string_literals::operator""s;
         document_count_.erase(document_id);
         document_info_.erase(document_id);
         word_frequency_.erase(document_id);
-        for (auto [word, id_TF] : word_to_document_freqs_) {
+        for (auto [word, TF] : word_frequency_[document_id]) {
             word_to_document_freqs_[word].erase(document_id);
-            
         }
     }
 
@@ -206,6 +205,10 @@ using std::string_literals::operator""s;
     }
 
     const std::map<std::string, double>& SearchServer::GetWordFrequencies(int document_id) const {
+        if (!word_frequency_.count(document_id)) {
+            
+            return {};
+        }
         return word_frequency_.at(document_id);
     }
 

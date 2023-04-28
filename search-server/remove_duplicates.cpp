@@ -12,6 +12,7 @@ void RemoveDuplicates(SearchServer& search_server) {
 
     std::set<int> id_remove;
     std::map<int, std::set<std::string>> id_to_words;
+    std::set<std::set<std::string>> words_doc;
 
 
     for (const int id : search_server) {
@@ -20,17 +21,16 @@ void RemoveDuplicates(SearchServer& search_server) {
             words.insert(word);
         }
         id_to_words[id] = words;
+        
     }
 
-    for (auto it1 = search_server.begin(); it1 != search_server.end(); ++it1) {
-        auto it2 = it1;
-        ++it2;
-        for (; it2 != search_server.end(); ++it2) {
-            if (id_to_words[*it1] == id_to_words[*it2]) {
-
-                id_remove.insert(*it2);
-            }
+    for (const auto& [id,words]:id_to_words) {
+        
+        if (words_doc.count(words)) {
+            id_remove.insert(id);
+            continue;
         }
+        words_doc.insert(words);
     }
 
     for (const int& id : id_remove) {
