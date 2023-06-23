@@ -11,10 +11,10 @@ using std::string_literals::operator""s;
 void RemoveDuplicates(SearchServer& search_server) {
 
     std::set<int> id_remove;
-    std::set<std::set<std::string>> words_doc;
+    std::set<std::set<std::string_view>> words_doc;
 
     for (const int id : search_server) {
-        std::set<std::string> words;
+        std::set<std::string_view> words;
         for (const auto [word, freq] : search_server.GetWordFrequencies(id)) { //<--
             words.insert(word);
         }
