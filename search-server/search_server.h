@@ -12,7 +12,6 @@
 #include "document.h"
 #include "concurrent_map.h"
 
-//using namespace std;//Иначе яндекс не принимает(можно убрать)!!!
 using std::string_literals::operator""s;
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
