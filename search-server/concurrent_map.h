@@ -7,8 +7,6 @@
 #include <string>
 #include <vector>
 
-
-
     using namespace std::string_literals;
 
     template <typename Key, typename Value>
@@ -30,11 +28,6 @@
                 : guard(bucket.mutex)
                 , ref_to_value(bucket.map[key]) {
             }
-            //void operator+=(const Value& val) {
-            //    //lock.lock();
-            //    ref_to_value += val;
-            //    //lock.unlock();
-            //}
         };
 
         explicit ConcurrentMap(size_t bucket_count)
@@ -64,5 +57,3 @@
     };
    
     
-    
-
